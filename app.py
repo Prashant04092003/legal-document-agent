@@ -27,6 +27,12 @@ GENERATED_AFFIDAVIT = (
     / "affidavit_in_reply.docx"
 )
 
+GENERATED_REPORT = (
+    PROJECT_ROOT
+    / "outputs"
+    / "evaluation_report.json"
+)
+
 
 # ------------------------------------------------------------------
 # Page configuration
@@ -481,7 +487,12 @@ def render_download_button() -> None:
 
 def generate_affidavit() -> dict | None:
     """
-    Call the FastAPI generation endpoint.
+    Run the generation workflow through the FastAPI backend.
+
+    When the API is unavailable, which is expected in the public
+    Streamlit Cloud deployment because the production LLM service
+    is local to the development machine, fall back to the verified
+    pre-generated assignment artifacts stored in /outputs.
     """
 
     try:
@@ -505,18 +516,65 @@ def generate_affidavit() -> dict | None:
 
             detail = response.text
 
-        st.error(
-            f"Generation failed "
-            f"(HTTP {response.status_code}): {detail}"
+        st.warning(
+            f"Generation API unavailable "
+            f"(HTTP {response.status_code}). "
+            "Showing the verified pre-generated demo output."
         )
 
-    except requests.RequestException as exc:
+    except requests.RequestException:
 
-        st.error(
-            f"Unable to reach the generation API: {exc}"
+        st.info(
+            "Demo Mode: the local generation API is not available "
+            "in the cloud deployment. Showing the verified "
+            "pre-generated assignment output."
         )
 
-    return None
+    # ----------------------------------------------------------
+    # Cloud demo fallback
+    # ----------------------------------------------------------
+
+    if not GENERATED_REPORT.exists():
+
+        st.error(
+            "No generation API is available and no pre-generated "
+            "evaluation report was found."
+        )
+
+        return None
+
+    try:
+
+        report = json.loads(
+            GENERATED_REPORT.read_text(
+                encoding="utf-8"
+            )
+        )
+
+    except (OSError, ValueError, TypeError) as exc:
+
+        st.error(
+            f"Unable to load the pre-generated demo output: {exc}"
+        )
+
+        return None
+
+    return {
+        "status": "demo_mode",
+        "revision_count": report.get(
+            "revision_count",
+            0,
+        ),
+        "evaluation_history_count": report.get(
+            "evaluation_history_count",
+            1,
+        ),
+        "report": report,
+        "artifacts": {
+            "affidavit": "/download/affidavit",
+            "evaluation_report": "/report",
+        },
+    }
 
 
 # ------------------------------------------------------------------
@@ -694,9 +752,17 @@ if st.button(
             "active_document"
         ] = "Generated Affidavit"
 
-        st.success(
-            "Affidavit generated and evaluated successfully."
-        )
+        if result.get("status") == "demo_mode":
+
+            st.success(
+                "Verified demo affidavit and evaluation report loaded successfully."
+            )
+
+        else:
+
+            st.success(
+                "Affidavit generated and evaluated successfully."
+            )
 
         st.rerun()
 
