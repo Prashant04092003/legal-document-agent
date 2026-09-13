@@ -1,0 +1,48 @@
+{
+  "report_title": "Affidavit in Reply - Evaluation Report",
+  "document": {
+    "document_type": "Affidavit in Reply",
+    "case_number": "1847",
+    "year": "2026"
+  },
+  "status": "PASS",
+  "overall_score": 100.0,
+  "dimension_scores": {
+    "Entity Accuracy": 100.0,
+    "Completeness": 100.0,
+    "Structure": 100.0,
+    "Consistency": 100.0,
+    "Template Fidelity": 100.0,
+    "Hallucination Check": 100.0
+  },
+  "issues": [],
+  "validation_summary": {
+    "deterministic": {
+      "passed": true,
+      "score": 100.0,
+      "error_count": 0,
+      "errors": []
+    },
+    "semantic": {
+      "passed": true,
+      "issue_count": 0,
+      "summary": "The generated draft does not fully preserve the specific blanket-denial position as stated in the source content."
+    }
+  },
+  "scoring": {
+    "method": "Hybrid dimension scores are based on deduplicated evaluation issues; the overall score is the weighted average using the evaluator weights.",
+    "weights": {
+      "Entity Accuracy": 0.2,
+      "Completeness": 0.2,
+      "Structure": 0.15,
+      "Consistency": 0.15,
+      "Template Fidelity": 0.15,
+      "Hallucination Check": 0.15
+    }
+  },
+  "revision": {
+    "revision_count": 0,
+    "evaluation_history_count": 0
+  },
+  "model": "qwen2.5:7b"
+}
